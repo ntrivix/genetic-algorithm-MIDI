@@ -16,7 +16,24 @@ trackNum = input("Track number: ")
 
 mid = MidiFile("songs/"+file)
               
-for i, track in enumerate(mid.tracks):
-    print('Track {}: {}'.format(i, track.name))
-    for msg in track:
-        print(msg)
+track = mid.tracks[int(trackNum)]
+events = []
+startedEvents = {}
+startTime = 0;
+for msg in track:
+    if msg.type in ["note_on", "note_off"] and msg.channel == int(channelNum):
+        startTime += msg.time
+        if (msg.type == "note_off"):
+            if msg.note in startedEvents:
+                time = startedEvents[msg.note][1]
+                startedEvents[msg.note].append(startTime-time)
+                events.append(startedEvents[msg.note])
+                startedEvents.pop(msg.note)
+        else:
+            startedEvents[msg.note] = [msg, startTime]
+
+events = sorted(events,key=lambda x : x[1])
+
+print(events)
+        
+        
