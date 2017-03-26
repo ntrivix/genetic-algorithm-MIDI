@@ -32,8 +32,23 @@ for msg in track:
         else:
             startedEvents[msg.note] = [msg, startTime]
 
-events = sorted(events,key=lambda x : x[1])
+events = sorted(events,key=lambda x : (x[1], -x[2]))
+finalEvents = []
 
-print(events)
+prevEnd = 0
+lastStart = 0
+
+for event in events:
+    if event[1] != lastStart:
+        time = event[1] - prevEnd
+        if time > 0:
+            #ima pauza
+            print("pauza "+str(time))
+            finalEvents.append(time)
+        prevEnd = max(event[1]+event[2], prevEnd)
+        lastStart = event[1]
+    print("event "+str(event[1])+" "+str(event[2]))
+    finalEvents.append(event)
+    
         
         
