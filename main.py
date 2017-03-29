@@ -6,77 +6,60 @@ Created on Sat Mar 25 20:02:16 2017
 """
 
 
-import sys
+import parseMid
+import lenga
 
-from mido import MidiFile
+midiData,minLen,maxLen = parseMidi("pesma1.mid",6,6)
 
+normalizeTime = []
+scaleFactor = 511/round(maxLen/minLen)
+#print(scaleFactor)
+notes = []
+for i in range(len(midiData)):
+    normalizeTime.append(round(midiData[i][2]*scaleFactor))
+    notes.append(midiData[i][0])
 
-def printNote(note):
-	notes=["C","C#","D","D#","E","F","F#","G","G#","A","A#","H"]
-	return [note//12-1,notes[note%12]]   
+#print(findLen([511, 511, 511, 511, 511, 511, 511, 511, 511, 511]))
 
-file = input("File name: ")
-channelNum = input("Channel number: ")
-trackNum = input("Track number: ")
-
-mid = MidiFile("songs/"+file)
-              
-track = mid.tracks[int(trackNum)]
-events = []
-startedEvents = {}
-startTime = 0;
-
-maxLen = 0;
-minLen = sys.maxsize
-
-for msg in track:
-    if msg.type in ["note_on", "note_off"] and msg.channel == int(channelNum):
-        startTime += msg.time
-        if (msg.type == "note_off"):
-            if msg.note in startedEvents:
-                time = startedEvents[msg.note][1]
-                l = startTime-time
-                maxLen = max(l, maxLen)
-                minLen = min(l, minLen)
-                startedEvents[msg.note].append(l)
-                events.append(startedEvents[msg.note])
-                startedEvents.pop(msg.note)
-        else:
-            startedEvents[msg.note] = [msg, startTime]
-
-events = sorted(events,key=lambda x : (x[1], -x[2]))
-finalEvents = []
-
-prevEnd = 0
-lastStart = 0
-
-
-p = 0
-for event in events:
-    if event[1] != lastStart:
-        time = event[1] - prevEnd
-        if time > 0:
-            #ima pauza
-            #print("pauza "+str(prevEnd)+" "+str(time))
-            
-            for i in range(time//maxLen):
-                finalEvents.append([0, "C", prevEnd, maxLen])
-            if (time%maxLen > 0):
-                finalEvents.append([0, "C", prevEnd, time%maxLen])
-                if (time < maxLen and p):
-                    minLen = min(minLen, time%maxLen)
-                p = 1
-        prevEnd = max(event[1]+event[2], prevEnd)
-        lastStart = event[1]
-    #print("event "+str(event[1])+" "+str(event[2]))
-    note = printNote(event[0].note)
-    finalEvents.append([note[0], note[1], event[1], event[2]])
+#print(normalizeTime)
+#print(len(normalizeTime))
+BIT_NUM = 9
+MAX_VAL = 511
+pom = 1 if len(midiData)%10<0 else 0
+l = len(midiData)//10 + pom
+       
+resDataLen = []
+for i in range(l):
+    #print(findLen(normalizeTime[i*10:min((i+1)*10,len(midiData))]))
+    resDataLen += findLen(normalizeTime[i*10:min((i+1)*10,len(midiData))])
     
-for event in finalEvents:
-    event[3] = round(event[3]/minLen)
-    print(event)
-#print(finalEvents)
-print(str(minLen)+" "+str(maxLen))    
+BIT_NUM = 7
+MAX_VAL = 127
+print("---------------------------------")
+
+resDataNote = []
+for i in range(l):
+    resDataNote += findLen(notes[i*10:min((i+1)*10,len(midiData))])
+
+
+#print(normalizeTime)
+#print(resDataLen)
+#print()
+
+#print(notes)
+#print(resDataNote)
+#print()
+
+before = []
+after = []
+for i in range(len(resDataNote)):
+    before.append(printNote(notes[i], round(normalizeTime[i]/scaleFactor)))
+    after.append(printNote(resDataNote[i], round(resDataLen[i]/scaleFactor)))
+print(before)
+print()
+print(after)
 
 
 
+
+#print(fitness([1,2,5,8,3],[1,2,5,511,3]))
