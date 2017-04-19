@@ -2,64 +2,72 @@
 """
 Created on Sat Mar 25 20:02:16 2017
 
-@author: Nikol
+@author: Nikola
 """
 
 
 import parseMid
 import lenga
+import datetime
+import threading
 
-midiData,minLen,maxLen = parseMidi("pesma1.mid",6,6)
+"""
+parseMidi(file, channelNum, trackNum)
+"""
+midiData,minLen,maxLen = parseMidi("pesma1.mid",5,5)
 
 normalizeTime = []
 scaleFactor = 511/round(maxLen/minLen)
-#print(scaleFactor)
+
 notes = []
 for i in range(len(midiData)):
     normalizeTime.append(round(midiData[i][2]*scaleFactor))
     notes.append(midiData[i][0])
+    
+resDataLen = []
+resDataNote = []
 
-#print(findLen([511, 511, 511, 511, 511, 511, 511, 511, 511, 511]))
-
-#print(normalizeTime)
-#print(len(normalizeTime))
 BIT_NUM = 9
 MAX_VAL = 511
-pom = 1 if len(midiData)%10<0 else 0
-l = len(midiData)//10 + pom
+LEN_POPULATION_SIZE = 200
+l = len(normalizeTime)//10
        
-resDataLen = []
+startTime = datetime.datetime.now()
+       
+
 for i in range(l):
-    #print(findLen(normalizeTime[i*10:min((i+1)*10,len(midiData))]))
-    resDataLen += findLen(normalizeTime[i*10:min((i+1)*10,len(midiData))])
+    resDataLen += findLen(normalizeTime[i*10:(i+1)*10])
+    
+i+=1
+if (i*10<len(normalizeTime)):
+    resDataLen+= findLen(normalizeTime[i*10:len(normalizeTime)])
+
     
 BIT_NUM = 7
 MAX_VAL = 127
+LEN_POPULATION_SIZE = 200
 print("---------------------------------")
 
-resDataNote = []
+
 for i in range(l):
-    resDataNote += findLen(notes[i*10:min((i+1)*10,len(midiData))])
+    resDataNote += findLen(notes[i*10:(i+1)*10])
 
-
-#print(normalizeTime)
-#print(resDataLen)
-#print()
-
-#print(notes)
-#print(resDataNote)
-#print()
+i+=1
+if (i*10<len(notes)):
+    resDataNote+= findLen(notes[i*10:len(notes)])
+    
+endTime = datetime.datetime.now()
 
 before = []
 after = []
 for i in range(len(resDataNote)):
     before.append(printNote(notes[i], round(normalizeTime[i]/scaleFactor)))
     after.append(printNote(resDataNote[i], round(resDataLen[i]/scaleFactor)))
+
+print("Original notes")
 print(before)
-print()
+print("Result notes")
 print(after)
 
-
-
-
-#print(fitness([1,2,5,8,3],[1,2,5,511,3]))
+print("Track length: ",len(resDataNote))
+print("Elapsed time:",endTime-startTime)

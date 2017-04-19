@@ -15,9 +15,9 @@ def grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
     return zip_longest(*args, fillvalue=fillvalue)
 
-LEN_POPULATION_SIZE = 200
-BIT_NUM = 9
-MAX_VAL = 511
+#LEN_POPULATION_SIZE = 200
+#BIT_NUM = 9
+#MAX_VAL = 511
 
 def generateHromozome(len):
     arr = [random.randint(0,MAX_VAL) for r in range(len-1)]
@@ -40,10 +40,15 @@ def fitness(hromosome, target):
 
 def cross(hromosome1, hromosome2):
     length = len(hromosome1)
+    if (len(hromosome1)==1):
+        br= ((hromosome1[0]<<(BIT_NUM//2))+(hromosome2[0]>>(BIT_NUM//2)))%(1<<BIT_NUM)
+        list=[br]
+        return list
+    if (len(hromosome1)==2):
+        return hromosome1[0:1]+hromosome2[1:2]
     p1 = random.randint(1,3*length//5)
     p2 = random.randint(p1+1, length-1)
     return hromosome1[0:p1] + hromosome2[p1:p2] + hromosome1[p2:length]
-
 
 def mutate(hromosome):
     if random.uniform(0,1) > 0.7:
@@ -59,12 +64,9 @@ def mutate(hromosome):
                 else:
                     newNote = hromosome[randNote] &  (~pos & 0xFFF)
                 hromosome[randNote] = newNote
-            
     return hromosome
 
 def findLen(lenArray):
-    #binaryLen = binarisation(lenArray, 8)    
-    
     generation = 0
     maxFitness = 0
     mf = 12*len(lenArray)
